@@ -1,0 +1,108 @@
+[project]
+name = "ha-inworld-tts"
+version = "1.0.0"
+description = "This is a custom component for Home Assistant that integrates with [Inworld TTS](https://inworld.ai/tts) to provide high-quality, ultra-realistic text-to-speech functionality."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "homeassistant>=2025.4.4",
+  "requests>=2.32.3",
+  "voluptuous>=0.15.2"
+]
+
+[dependency-groups]
+dev = [
+  "bandit>=1.8.6",
+  "mypy>=1.14.0",
+  "pre-commit>=4.3.0",
+  "pymarkdownlnt>=0.9.32",
+  "ruff>=0.13.2",
+  "toml-sort>=0.23.1",
+  "validate-pyproject>=0.20.2"
+]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"] # Skip assert_used test
+recursive = true
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+strict_optional = false
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+check_untyped_defs = true
+
+[tool.pymarkdownlnt]
+# Configuration for PyMarkdown linting
+disable-rules = [
+  "MD009", # Trailing spaces
+  "MD013", # Line length
+  "MD022", # Headers should be surrounded by blank lines
+  "MD031", # Fenced code blocks should be surrounded by blank lines
+  "MD033", # Inline HTML
+  "MD036", # Emphasis used instead of a heading
+  "MD041", # First line in file should be a top level heading
+  "MD047" # Files should end with a single newline character
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+exclude = [
+  ".git",
+  "__pycache__",
+  ".mypy_cache",
+  ".pytest_cache",
+  "build",
+  "dist",
+  ".venv"
+]
+
+[tool.ruff.format]
+# Use single quotes for strings
+quote-style = "double"
+# Indent with spaces
+indent-style = "space"
+# Respect magic trailing commas
+skip-magic-trailing-comma = false
+# Automatically detect line endings
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = [
+  "E", # pycodestyle errors
+  "W", # pycodestyle warnings
+  "F", # pyflakes
+  "I", # isort
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "UP", # pyupgrade
+  "ARG", # flake8-unused-arguments
+  "SIM", # flake8-simplify
+  "TCH", # flake8-type-checking
+  "N" # pep8-naming
+]
+ignore = [
+  "E203", # whitespace before ':'
+  "E501", # line too long (handled by ruff formatter)
+  "ARG001", # unused function argument (common in Home Assistant)
+  "ARG002", # unused method argument (common in Home Assistant)
+  "TCH002", # move third-party imports into type-checking block (can break Home Assistant)
+  "N818" # exception naming (Home Assistant convention)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components.inworld_tts"]
+known-third-party = ["homeassistant"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"] # Allow unused imports in __init__.py files
+
+[tool.safety]
+# Configuration for Safety dependency vulnerability checking
+continue-on-error = true
+output = "json"
