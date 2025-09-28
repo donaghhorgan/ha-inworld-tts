@@ -1,7 +1,7 @@
 [project]
 name = "ha-inworld-tts"
 version = "1.0.0"
-description = "This is a custom component for Home Assistant that integrates with [Inworld TTS](https://inworld.ai/tts) to provide high-quality, ultra-realistic text-to-speech functionality."
+description = "A Home Assistant custom component that integrates with [Inworld TTS](https://inworld.ai/tts) for high-quality, ultra-realistic text-to-speech."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
