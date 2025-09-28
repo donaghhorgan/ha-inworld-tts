@@ -13,6 +13,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DEFAULT_API_BASE_URL,
+    DEFAULT_API_TIMEOUT,
     DEFAULT_AUDIO_ENCODING,
     DEFAULT_MODEL_ID,
     DEFAULT_SAMPLE_RATE_HERTZ,
@@ -42,7 +43,9 @@ async def validate_api_connection_and_fetch_voices(
     }
 
     try:
-        response = await hass.async_add_executor_job(requests.get, url, None, headers)
+        response = await hass.async_add_executor_job(
+            lambda: requests.get(url, headers=headers, timeout=DEFAULT_API_TIMEOUT)
+        )
         response.raise_for_status()
         response_data = response.json()
 
@@ -103,7 +106,9 @@ async def validate_voice_input(
 
     try:
         response = await hass.async_add_executor_job(
-            requests.post, url, payload, headers
+            lambda: requests.post(
+                url, json=payload, headers=headers, timeout=DEFAULT_API_TIMEOUT
+            )
         )
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
