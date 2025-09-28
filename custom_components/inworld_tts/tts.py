@@ -70,7 +70,7 @@ class InworldTTSEntity(TextToSpeechEntity):
         if language != self._language:
             raise Exception(f"Language '{language}' not supported")
 
-        url = f"{self._api_url}/tts/v1/voice:stream"
+        url = f"{self._api_url}/tts/v1/voice"
         headers = {
             "Authorization": f"Basic {self._api_key}",
             "Content-Type": "application/json",

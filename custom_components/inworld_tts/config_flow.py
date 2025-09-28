@@ -76,7 +76,7 @@ async def validate_voice_input(
     hass: HomeAssistant, data: dict[str, Any], api_data: dict[str, Any]
 ) -> dict[str, Any]:
     """Validate the voice configuration by making a test TTS call."""
-    url = f"{api_data['api_url']}/tts/v1/voice:stream"
+    url = f"{api_data['api_url']}/tts/v1/voice"
     headers = {
         "Authorization": f"Basic {api_data['api_key']}",
         "Content-Type": "application/json",
