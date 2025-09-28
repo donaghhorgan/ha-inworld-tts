@@ -5,9 +5,9 @@ description = "This is a custom component for Home Assistant that integrates wit
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "homeassistant>=2024.3.3",
-    "requests>=2.31.0",
-    "voluptuous>=0.13.1",
+  "homeassistant>=2024.3.3",
+  "requests>=2.31.0",
+  "voluptuous>=0.13.1",
 ]
 
 [dependency-groups]
@@ -19,7 +19,7 @@ dev = [
   "ruff>=0.13.2",
   "toml-sort>=0.23.1",
   "types-requests>=2.31.0.6",
-  "validate-pyproject>=0.20.2",
+  "validate-pyproject>=0.20.2"
 ]
 
 [tool.bandit]

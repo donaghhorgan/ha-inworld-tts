@@ -15,12 +15,10 @@ repos:
       - id: ruff-format
         name: Ruff Format
         args: [--check, --diff]
-        files: ^custom_components/
       # Run the linter (includes import sorting)
       - id: ruff
         name: Ruff Lint
         args: [--fix]
-        files: ^custom_components/
 
   # MyPy for type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -28,7 +26,6 @@ repos:
     hooks:
       - id: mypy
         name: MyPy Type Check
-        files: ^custom_components/
         additional_dependencies: [types-requests]
 
   # Bandit for security linting
@@ -37,7 +34,7 @@ repos:
     hooks:
       - id: bandit
         name: Bandit Security Check
-        files: ^custom_components/
+        args: [-r]
         pass_filenames: false
 
   # PyMarkdown for Markdown linting
