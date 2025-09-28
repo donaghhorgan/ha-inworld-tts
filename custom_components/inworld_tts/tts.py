@@ -20,7 +20,6 @@ from .const import (
     DEFAULT_API_TIMEOUT,
     DOMAIN,
     TITLE,
-    SupportedAudioEncodings,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -89,9 +88,9 @@ class InworldTTSEntity(TextToSpeechEntity):
             "timestampType": self._timestamp_type,
         }
 
-        content_type = SupportedAudioEncodings[
-            self._audio_encoding.upper()
-        ].content_type
+        # content_type = SupportedAudioEncodings[
+        #     self._audio_encoding.upper()
+        # ].content_type
 
         _LOGGER.debug(
             'Getting TTS audio for message "%s" with configuration: %s',
@@ -111,7 +110,7 @@ class InworldTTSEntity(TextToSpeechEntity):
                 "Successfully received TTS audio (%d bytes)", len(audio_content)
             )
 
-            return (content_type, audio_content)
+            return ("mp3", audio_content)
 
         except requests.exceptions.HTTPError as err:
             _LOGGER.error("HTTP error from Inworld API: %s", err)
