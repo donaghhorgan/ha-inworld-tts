@@ -23,7 +23,7 @@ dev = [
 ]
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = [".venv", "tests"]
 skips = ["B101"] # Skip assert_used test
 recursive = true
 
@@ -102,8 +102,3 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"] # Allow unused imports in __init__.py files
-
-[tool.safety]
-# Configuration for Safety dependency vulnerability checking
-continue-on-error = true
-output = "json"

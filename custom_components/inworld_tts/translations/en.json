@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_url": "API URL",
+          "api_key": "API Key"
+        },
+        "description": "Enter your Inworld TTS API credentials. Get your API key from https://platform.inworld.ai/",
+        "title": "Inworld TTS API Configuration"
+      },
+      "voice": {
+        "data": {
+          "language": "Language",
+          "voice_id": "Voice",
+          "model_id": "Model ID"
+        },
+        "description": "Select the language and voice for text-to-speech synthesis.",
+        "title": "Voice Selection"
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Inworld TTS API",
+      "invalid_auth": "Invalid API key",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "Service is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "language": "Language",
+          "voice_id": "Voice",
+          "model_id": "Model ID"
+        },
+        "description": "Configure Inworld TTS voice options",
+        "title": "Inworld TTS Options"
+      }
+    }
+  }
+}
