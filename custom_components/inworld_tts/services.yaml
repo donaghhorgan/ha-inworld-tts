@@ -1,0 +1,103 @@
+speak:
+  name: Speak
+  description: Use Inworld TTS to convert text to speech
+  fields:
+    entity_id:
+      name: Entity
+      description: Entity ID of the TTS service
+      required: true
+      selector:
+        entity:
+          domain: tts
+    message:
+      name: Message
+      description: Text to be spoken
+      required: true
+      selector:
+        text:
+          multiline: true
+    language:
+      name: Language
+      description: Language to use for TTS (must match configured language)
+      required: false
+      selector:
+        text:
+    voice_id:
+      name: Voice ID
+      description: Voice to use for speech synthesis (from configured options)
+      required: false
+      selector:
+        text:
+    model_id:
+      name: Model ID
+      description: TTS model to use
+      required: false
+      default: "inworld-tts-1"
+      selector:
+        select:
+          options:
+            - value: "inworld-tts-1"
+              label: "Inworld TTS (Fast, cost-efficient)"
+            - value: "inworld-tts-1-max"
+              label: "Inworld TTS Max (More expressive, preview)"
+    audio_encoding:
+      name: Audio Encoding
+      description: Output audio encoding format
+      required: false
+      default: "MP3"
+      selector:
+        select:
+          options:
+            - value: "LINEAR16"
+              label: "Linear PCM (WAV)"
+            - value: "MP3"
+              label: "MP3"
+            - value: "OGG_OPUS"
+              label: "Opus (OGG)"
+            - value: "ALAW"
+              label: "ALAW"
+            - value: "MULAW"
+              label: "MULAW"
+    sample_rate_hertz:
+      name: Sample Rate
+      description: Audio sample rate in Hz
+      required: false
+      default: 48000
+      selector:
+        number:
+          min: 8000
+          max: 48000
+          step: 1000
+          mode: box
+    temperature:
+      name: Temperature
+      description: Controls randomness and expressiveness (0.0-2.0)
+      required: false
+      default: 0.8
+      selector:
+        number:
+          min: 0.0
+          max: 2.0
+          step: 0.1
+          mode: box
+    timestamp_type:
+      name: Timestamp Type
+      description: Type of timing information to include
+      required: false
+      default: "TIMESTAMP_TYPE_UNSPECIFIED"
+      selector:
+        select:
+          options:
+            - value: "TIMESTAMP_TYPE_UNSPECIFIED"
+              label: "None"
+            - value: "WORD"
+              label: "Word-level alignment"
+            - value: "CHARACTER"
+              label: "Character-level alignment"
+    media_player_entity_id:
+      name: Media Player Entity
+      description: Media player entity to play the generated audio
+      required: false
+      selector:
+        entity:
+          domain: media_player
