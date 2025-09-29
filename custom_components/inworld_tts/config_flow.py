@@ -7,7 +7,12 @@ from typing import Any
 
 import requests
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -109,17 +114,17 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         )
 
     @staticmethod
-    def async_get_options_flow(config_entry) -> OptionsFlow:
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:  # noqa: ARG004
         """Create the options flow."""
-        return InworldTTSOptionsFlow(config_entry)
+        return InworldTTSOptionsFlow()
 
 
 class InworldTTSOptionsFlow(OptionsFlow):
     """Handle options flow for Inworld TTS."""
 
-    def __init__(self, config_entry) -> None:
+    def __init__(self) -> None:
         """Initialize the options flow."""
-        self.config_entry = config_entry
+        super().__init__()
         self._voices_by_language: dict[str, list[dict[str, str]]] = {}
         self._selected_language: str | None = None
 
