@@ -39,23 +39,71 @@ class InworldTTSEntity(TextToSpeechEntity):
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize Inworld TTS."""
-        self._api_url = config_entry.data["api_url"]
-        self._api_key = config_entry.data["api_key"]
-        self._voice_id = config_entry.data["voice_id"]
-        self._model_id = config_entry.data["model_id"]
-        self._language = config_entry.data["language"]
-        self._audio_encoding = config_entry.data["audio_encoding"]
-        self._sample_rate_hertz = config_entry.data["sample_rate_hertz"]
-        self._temperature = config_entry.data["temperature"]
-        self._timestamp_type = config_entry.data["timestamp_type"]
-
+        self._config_entry = config_entry
         self._attr_name = TITLE
         self._attr_unique_id = f"{DOMAIN}_{config_entry.entry_id}"
+
+    def _get_config_value(self, key: str, default: Any = None) -> Any:
+        """Get configuration value with error handling."""
+        if key not in self._config_entry.data:
+            if default is not None:
+                return default
+            raise ValueError(f"Required configuration '{key}' is not set")
+        return self._config_entry.data[key]
+
+    @property
+    def _api_url(self) -> str:
+        """Get API URL from config."""
+        return self._get_config_value("api_url")
+
+    @property
+    def _api_key(self) -> str:
+        """Get API key from config."""
+        return self._get_config_value("api_key")
+
+    @property
+    def _voice_id(self) -> str:
+        """Get voice ID from config."""
+        return self._get_config_value("voice_id")
+
+    @property
+    def _model_id(self) -> str:
+        """Get model ID from config."""
+        return self._get_config_value("model_id")
+
+    @property
+    def _language(self) -> str:
+        """Get language from config."""
+        return self._get_config_value("language")
+
+    @property
+    def _audio_encoding(self) -> str:
+        """Get audio encoding from config."""
+        return self._get_config_value("audio_encoding")
+
+    @property
+    def _sample_rate_hertz(self) -> int:
+        """Get sample rate from config."""
+        return self._get_config_value("sample_rate_hertz")
+
+    @property
+    def _temperature(self) -> float:
+        """Get temperature from config."""
+        return self._get_config_value("temperature")
+
+    @property
+    def _timestamp_type(self) -> str:
+        """Get timestamp type from config."""
+        return self._get_config_value("timestamp_type")
 
     @property
     def supported_languages(self) -> list[str]:
         """Return list of supported languages."""
-        return [self._language]
+        try:
+            return [self._language]
+        except ValueError:
+            # If language is not configured, return empty list
+            return []
 
     @property
     def default_language(self) -> str:
@@ -70,48 +118,53 @@ class InworldTTSEntity(TextToSpeechEntity):
     @property
     def default_options(self) -> dict[str, Any]:
         """Return default options."""
-        return {"voice": self._voice_id}
+        try:
+            return {"voice": self._voice_id}
+        except ValueError:
+            # If voice_id is not configured, return empty dict
+            return {}
 
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any] | None = None
     ) -> TtsAudioType:
         """Load TTS from Inworld."""
-        if language != self._language:
-            raise Exception(f"Language '{language}' not supported")
+        try:
+            if language != self._language:
+                raise Exception(f"Language '{language}' not supported")
 
-        # Get voice from options if provided, otherwise use default
-        voice_id = self._voice_id
-        if options and "voice" in options:
-            voice_id = options["voice"]
+            # Get voice from options if provided, otherwise use default
+            voice_id = self._voice_id
+            if options and "voice" in options:
+                voice_id = options["voice"]
 
-        url = f"{self._api_url}/tts/v1/voice"
-        headers = {
-            "Authorization": f"Basic {self._api_key}",
-            "Content-Type": "application/json",
-        }
+            url = f"{self._api_url}/tts/v1/voice"
+            headers = {
+                "Authorization": f"Basic {self._api_key}",
+                "Content-Type": "application/json",
+            }
 
-        # Prepare audio config based on format
-        payload = {
-            "text": message,
-            "voiceId": voice_id,
-            "modelId": self._model_id,
-            "temperature": self._temperature,
-            "audioConfig": {
-                "audioEncoding": self._audio_encoding,
-                "sampleRateHertz": self._sample_rate_hertz,
-            },
-            "timestampType": self._timestamp_type,
-        }
+            # Prepare audio config based on format
+            payload = {
+                "text": message,
+                "voiceId": voice_id,
+                "modelId": self._model_id,
+                "temperature": self._temperature,
+                "audioConfig": {
+                    "audioEncoding": self._audio_encoding,
+                    "sampleRateHertz": self._sample_rate_hertz,
+                },
+                "timestampType": self._timestamp_type,
+            }
 
-        # content_type = SupportedAudioEncodings[
-        #     self._audio_encoding.upper()
-        # ].content_type
+            _LOGGER.debug(
+                'Getting TTS audio for message "%s" with configuration: %s',
+                message[:50] + "..." if len(message) > 50 else message,
+                payload,
+            )
 
-        _LOGGER.debug(
-            'Getting TTS audio for message "%s" with configuration: %s',
-            message[:50] + "..." if len(message) > 50 else message,
-            payload,
-        )
+        except ValueError as err:
+            _LOGGER.error("Configuration error: %s", err)
+            raise Exception(f"Configuration error: {err}") from err
 
         try:
             response = await asyncio.get_event_loop().run_in_executor(
