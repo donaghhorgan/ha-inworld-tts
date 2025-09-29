@@ -16,8 +16,7 @@
           "model_id": "Model ID",
           "audio_encoding": "Audio Encoding",
           "sample_rate_hertz": "Sample Rate (Hz)",
-          "temperature": "Temperature",
-          "timestamp_type": "Timestamp Type"
+          "temperature": "Temperature"
         },
         "description": "Select the language and voice for text-to-speech synthesis. The voice list will update based on your language selection.",
         "title": "Voice Selection"
@@ -41,8 +40,7 @@
           "model_id": "Model ID",
           "audio_encoding": "Audio Encoding",
           "sample_rate_hertz": "Sample Rate (Hz)",
-          "temperature": "Temperature",
-          "timestamp_type": "Timestamp Type"
+          "temperature": "Temperature"
         },
         "description": "Configure Inworld TTS voice options",
         "title": "Inworld TTS Options"

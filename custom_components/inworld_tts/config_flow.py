@@ -18,10 +18,8 @@ from .const import (
     DEFAULT_MODEL_ID,
     DEFAULT_SAMPLE_RATE_HERTZ,
     DEFAULT_TEMPERATURE,
-    DEFAULT_TIMESTAMP_TYPE,
     DOMAIN,
     SUPPORTED_MODEL_IDS,
-    SUPPORTED_TIMESTAMP_TYPES,
     TITLE,
     SupportedAudioEncodings,
 )
@@ -221,10 +219,6 @@ class InworldTTSOptionsFlow(OptionsFlow):
                 "temperature",
                 default=current_options.get("temperature", DEFAULT_TEMPERATURE),
             ): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=2.0)),
-            vol.Optional(
-                "timestamp_type",
-                default=current_options.get("timestamp_type", DEFAULT_TIMESTAMP_TYPE),
-            ): vol.In(SUPPORTED_TIMESTAMP_TYPES),
         }
 
         # Add voice_id field only if we have voices for the selected language
@@ -277,9 +271,6 @@ async def validate_voice_input(
     # Add optional configuration if provided
     if "temperature" in data:
         payload["temperature"] = data["temperature"]
-
-    if "timestamp_type" in data:
-        payload["timestampType"] = data["timestamp_type"]
 
     # Add audio config if audio encoding or sample rate specified
     audio_config = {}

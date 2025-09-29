@@ -80,20 +80,6 @@ speak:
           max: 2.0
           step: 0.1
           mode: box
-    timestamp_type:
-      name: Timestamp Type
-      description: Type of timing information to include
-      required: false
-      default: "TIMESTAMP_TYPE_UNSPECIFIED"
-      selector:
-        select:
-          options:
-            - value: "TIMESTAMP_TYPE_UNSPECIFIED"
-              label: "None"
-            - value: "WORD"
-              label: "Word-level alignment"
-            - value: "CHARACTER"
-              label: "Character-level alignment"
     media_player_entity_id:
       name: Media Player Entity
       description: Media player entity to play the generated audio

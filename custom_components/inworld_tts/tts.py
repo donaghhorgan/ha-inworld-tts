@@ -92,11 +92,6 @@ class InworldTTSEntity(TextToSpeechEntity):
         return self._get_config_value("temperature")
 
     @property
-    def _timestamp_type(self) -> str:
-        """Get timestamp type from config."""
-        return self._get_config_value("timestamp_type")
-
-    @property
     def supported_languages(self) -> list[str]:
         """Return list of supported languages."""
         try:
@@ -153,7 +148,6 @@ class InworldTTSEntity(TextToSpeechEntity):
                     "audioEncoding": self._audio_encoding,
                     "sampleRateHertz": self._sample_rate_hertz,
                 },
-                "timestampType": self._timestamp_type,
             }
 
             _LOGGER.debug(

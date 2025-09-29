@@ -12,7 +12,6 @@ DEFAULT_AUDIO_ENCODING = "mp3"
 DEFAULT_MODEL_ID = "inworld-tts-1"
 DEFAULT_SAMPLE_RATE_HERTZ = 48000
 DEFAULT_TEMPERATURE = 0.8
-DEFAULT_TIMESTAMP_TYPE = "TIMESTAMP_TYPE_UNSPECIFIED"
 
 
 # Available options
@@ -39,10 +38,4 @@ class SupportedAudioEncodings(Enum):
 SUPPORTED_MODEL_IDS = {
     "inworld-tts-1": "Inworld TTS (Fast, cost-efficient)",
     "inworld-tts-1-max": "Inworld TTS Max (More expressive, preview)",
-}
-
-SUPPORTED_TIMESTAMP_TYPES = {
-    "TIMESTAMP_TYPE_UNSPECIFIED": "None",
-    "WORD": "Word-level alignment",
-    "CHARACTER": "Character-level alignment",
 }
