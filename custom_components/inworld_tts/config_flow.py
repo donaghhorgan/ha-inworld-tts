@@ -131,6 +131,7 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         """Initialize the config flow."""
         self._api_data: dict[str, Any] = {}
         self._voices_by_language: dict[str, list[dict[str, str]]] = {}
+        self._selected_language: str | None = None
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -173,6 +174,23 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            # If language changed, update selected language and re-show form
+            if "language" in user_input:
+                new_language = user_input["language"]
+                if new_language != self._selected_language:
+                    self._selected_language = new_language
+                    # If only language field provided or voice_id not valid for new language
+                    if (
+                        "voice_id" not in user_input
+                        or new_language not in self._voices_by_language
+                        or not any(
+                            voice["value"] == user_input.get("voice_id")
+                            for voice in self._voices_by_language[new_language]
+                        )
+                    ):
+                        return await self._show_voice_form(errors)
+
+            # Validate complete form submission
             try:
                 await validate_voice_input(self.hass, user_input, self._api_data)
                 return self.async_create_entry(
@@ -186,46 +204,60 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
+        return await self._show_voice_form(errors)
+
+    async def _show_voice_form(self, errors: dict[str, str]) -> ConfigFlowResult:
+        """Show the voice selection form with appropriate voice options."""
         # Build language options
-        language_options = [
-            {"value": lang, "label": lang.upper()}
-            for lang in sorted(self._voices_by_language.keys())
-        ]
+        language_options = {
+            lang: lang.upper() for lang in sorted(self._voices_by_language.keys())
+        }
 
-        # Build voice options (initially empty, will be populated via frontend)
-        voice_options = []
-        if self._voices_by_language:
-            # Show voices for the first language as default
-            first_lang = sorted(self._voices_by_language.keys())[0]
-            voice_options = self._voices_by_language[first_lang]
+        # Build voice options based on selected language
+        voice_options = {}
+        selected_language = self._selected_language
 
-        # Create dynamic schema with selectors
-        data_schema = vol.Schema(
-            {
-                vol.Required("language"): vol.In(
-                    {opt["value"]: opt["label"] for opt in language_options}
-                ),
-                vol.Required("voice_id"): vol.In(
-                    {opt["value"]: opt["label"] for opt in voice_options}
-                ),
-                vol.Optional("model_id", default=DEFAULT_MODEL_ID): vol.In(
-                    SUPPORTED_MODEL_IDS
-                ),
-                vol.Optional("audio_encoding", default=DEFAULT_AUDIO_ENCODING): vol.In(
-                    SupportedAudioEncodings._member_map_.keys()
-                ),
-                vol.Optional(
-                    "sample_rate_hertz", default=DEFAULT_SAMPLE_RATE_HERTZ
-                ): vol.All(int, vol.Range(min=8000, max=48000)),
-                vol.Optional("temperature", default=DEFAULT_TEMPERATURE): vol.All(
-                    vol.Coerce(float), vol.Range(min=0.0, max=2.0)
-                ),
-                vol.Optional(
-                    "timestamp_type",
-                    default=DEFAULT_TIMESTAMP_TYPE,
-                ): vol.In(SUPPORTED_TIMESTAMP_TYPES),
+        if not selected_language and self._voices_by_language:
+            # Default to first language if none selected
+            selected_language = sorted(self._voices_by_language.keys())[0]
+            self._selected_language = selected_language
+
+        if selected_language and selected_language in self._voices_by_language:
+            voice_options = {
+                opt["value"]: opt["label"]
+                for opt in self._voices_by_language[selected_language]
             }
-        )
+
+        # Create schema with current selections
+        data_schema_dict = {
+            vol.Required("language", default=selected_language): vol.In(
+                language_options
+            ),
+            vol.Optional("model_id", default=DEFAULT_MODEL_ID): vol.In(
+                SUPPORTED_MODEL_IDS
+            ),
+            vol.Optional("audio_encoding", default=DEFAULT_AUDIO_ENCODING): vol.In(
+                SupportedAudioEncodings._member_map_.keys()
+            ),
+            vol.Optional(
+                "sample_rate_hertz", default=DEFAULT_SAMPLE_RATE_HERTZ
+            ): vol.All(int, vol.Range(min=8000, max=48000)),
+            vol.Optional("temperature", default=DEFAULT_TEMPERATURE): vol.All(
+                vol.Coerce(float), vol.Range(min=0.0, max=2.0)
+            ),
+            vol.Optional(
+                "timestamp_type",
+                default=DEFAULT_TIMESTAMP_TYPE,
+            ): vol.In(SUPPORTED_TIMESTAMP_TYPES),
+        }
+
+        # Add voice_id field only if we have voices for the selected language
+        if voice_options:
+            data_schema_dict[vol.Required("voice_id")] = vol.In(voice_options)
+        else:
+            data_schema_dict[vol.Optional("voice_id")] = str
+
+        data_schema = vol.Schema(data_schema_dict)
 
         return self.async_show_form(
             step_id="voice",
@@ -233,6 +265,7 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             errors=errors,
             description_placeholders={
                 "voices_data": str(self._voices_by_language),
+                "selected_language": selected_language or "",
             },
         )
 

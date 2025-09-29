@@ -62,12 +62,27 @@ class InworldTTSEntity(TextToSpeechEntity):
         """Return the default language."""
         return self._language
 
+    @property
+    def supported_options(self) -> list[str]:
+        """Return list of supported options like voice."""
+        return ["voice"]
+
+    @property
+    def default_options(self) -> dict[str, Any]:
+        """Return default options."""
+        return {"voice": self._voice_id}
+
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any] | None = None
     ) -> TtsAudioType:
         """Load TTS from Inworld."""
         if language != self._language:
             raise Exception(f"Language '{language}' not supported")
+
+        # Get voice from options if provided, otherwise use default
+        voice_id = self._voice_id
+        if options and "voice" in options:
+            voice_id = options["voice"]
 
         url = f"{self._api_url}/tts/v1/voice"
         headers = {
@@ -78,7 +93,7 @@ class InworldTTSEntity(TextToSpeechEntity):
         # Prepare audio config based on format
         payload = {
             "text": message,
-            "voiceId": self._voice_id,
+            "voiceId": voice_id,
             "modelId": self._model_id,
             "temperature": self._temperature,
             "audioConfig": {
@@ -110,7 +125,19 @@ class InworldTTSEntity(TextToSpeechEntity):
                 "Successfully received TTS audio (%d bytes)", len(audio_content)
             )
 
-            return ("mp3", audio_content)
+            # Map audio encoding to proper format and extension
+            encoding = self._audio_encoding.upper()
+            if encoding == "MP3":
+                return ("mp3", audio_content)
+            elif encoding == "LINEAR16":
+                return ("wav", audio_content)
+            elif encoding == "OGG_OPUS":
+                return ("opus", audio_content)
+            elif encoding in ["ALAW", "MULAW"]:
+                return ("wav", audio_content)
+            else:
+                # Default to mp3
+                return ("mp3", audio_content)
 
         except requests.exceptions.HTTPError as err:
             _LOGGER.error("HTTP error from Inworld API: %s", err)
