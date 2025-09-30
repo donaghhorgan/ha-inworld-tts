@@ -55,6 +55,12 @@ repos:
         language: system
         files: ^(pyproject\.toml|\.python-version|\.devcontainer\.json|\.github/workflows/.*\.yml)$
         pass_filenames: false
+      - id: ha-version-consistency
+        name: Check HA Version Consistency
+        entry: python scripts/check_ha_version_consistency.py
+        language: system
+        files: ^(hacs\.json|pyproject\.toml)$
+        pass_filenames: false
       - id: validate-pyproject
         name: Validate pyproject.toml
         entry: uv run validate-pyproject
