@@ -80,7 +80,10 @@ logger:
     custom_components.inworld_tts: debug
 ```
 
-## Development
+## Development & Contributing
+
+This project includes several development tools and linting checks to ensure
+code quality and consistency.
 
 ### Setup
 
@@ -89,17 +92,6 @@ git clone https://github.com/donaghhorgan/ha-inworld-tts.git
 cd ha-inworld-tts
 uv sync --dev
 uv run pre-commit install
-```
-
-### Available Commands
-
-```bash
-uv sync --dev                      # Install dependencies
-uv run ruff format                 # Format code
-uv run ruff check --fix            # Lint and fix
-uv run mypy                        # Type checking
-uv run bandit -r                   # Security scan
-uv run pre-commit run --all-files  # Run all checks
 ```
 
 The project uses pre-commit hooks for code quality, including formatting

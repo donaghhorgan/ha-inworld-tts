@@ -202,9 +202,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    # Determine project root (where this script is located)
+    # Determine project root (parent of scripts directory)
     script_dir = Path(__file__).parent.absolute()
-    project_root = script_dir
+    project_root = script_dir.parent
 
     # Check if we're in the right directory
     pyproject_path = project_root / "pyproject.toml"

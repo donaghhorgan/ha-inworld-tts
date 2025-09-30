@@ -28,6 +28,10 @@ jobs:
         run: |
           uv sync --dev
 
+      - name: Check Python Version Consistency
+        run: |
+          python scripts/check_python_version_consistency.py
+
       - name: Run Ruff (Formatting check)
         run: |
           uv run ruff format --check --diff .
@@ -46,12 +50,12 @@ jobs:
 
       - name: Run Bandit (Security linting)
         run: |
-          uv run bandit -r -f json -o bandit-report.json custom_components/ sync_manifest.py || true
-          uv run bandit -r custom_components/ sync_manifest.py
+          uv run bandit -r -f json -o bandit-report.json custom_components/ scripts/sync_manifest.py || true
+          uv run bandit -r custom_components/ scripts/sync_manifest.py
 
       - name: Check manifest.json sync
         run: |
-          python sync_manifest.py --check
+          python scripts/sync_manifest.py --check
 
       - name: Upload Bandit report
         if: always()
