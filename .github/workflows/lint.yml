@@ -54,12 +54,12 @@ jobs:
 
       - name: Run Bandit (Security linting)
         run: |
-          uv run bandit -r -f json -o bandit-report.json custom_components/ scripts/sync_manifest.py || true
-          uv run bandit -r custom_components/ scripts/sync_manifest.py
+          uv run bandit -r -f json -o bandit-report.json custom_components/ scripts/ || true
+          uv run bandit -r custom_components/ scripts/
 
-      - name: Check manifest.json sync
+      - name: Check manifest.json consistency
         run: |
-          python scripts/sync_manifest.py --check
+          python scripts/check_manifest_consistency.py
 
       - name: Upload Bandit report
         if: always()

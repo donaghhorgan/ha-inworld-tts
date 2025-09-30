@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: bandit
         name: Bandit Security Check
-        args: [-r, custom_components/, scripts/sync_manifest.py]
+        args: [-r, custom_components/, scripts/]
         pass_filenames: false
 
   # PyMarkdown for Markdown linting
@@ -68,8 +68,8 @@ repos:
         files: ^pyproject\.toml$
         pass_filenames: false
       - id: sync-manifest
-        name: Sync manifest with pyproject.toml
-        entry: python scripts/sync_manifest.py --check
+        name: Check Manifest Consistency
+        entry: python scripts/check_manifest_consistency.py
         language: system
         files: ^(pyproject\.toml|custom_components/.*/manifest\.json)$
         pass_filenames: false
