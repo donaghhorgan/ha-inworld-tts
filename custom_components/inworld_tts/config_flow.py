@@ -154,7 +154,7 @@ class InworldTTSOptionsFlow(OptionsFlow):
             # Validate complete form submission
             try:
                 await validate_voice_input(
-                    self.hass, user_input, self.config_entry.data
+                    self.hass, user_input, dict(self.config_entry.data)
                 )
                 return self.async_create_entry(title="", data=user_input)
             except CannotConnect:
@@ -169,7 +169,7 @@ class InworldTTSOptionsFlow(OptionsFlow):
         if not self._voices_by_language:
             try:
                 self._voices_by_language = await get_voices_and_languages(
-                    self.hass, self.config_entry.data
+                    self.hass, dict(self.config_entry.data)
                 )
             except Exception:
                 _LOGGER.exception("Failed to fetch voices")
