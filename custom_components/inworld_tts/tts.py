@@ -18,6 +18,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DEFAULT_API_TIMEOUT,
+    DEFAULT_AUDIO_ENCODING,
+    DEFAULT_LANGUAGE,
+    DEFAULT_MODEL_ID,
+    DEFAULT_SAMPLE_RATE_HERTZ,
+    DEFAULT_TEMPERATURE,
     DOMAIN,
     TITLE,
 )
@@ -45,11 +50,15 @@ class InworldTTSEntity(TextToSpeechEntity):
 
     def _get_config_value(self, key: str, default: Any = None) -> Any:
         """Get configuration value with error handling."""
-        if key not in self._config_entry.data:
+        # Check options first (for user-configurable settings), then data (for setup settings)
+        if key in self._config_entry.options:
+            return self._config_entry.options[key]
+        elif key in self._config_entry.data:
+            return self._config_entry.data[key]
+        else:
             if default is not None:
                 return default
             raise ValueError(f"Required configuration '{key}' is not set")
-        return self._config_entry.data[key]
 
     @property
     def _api_url(self) -> str:
@@ -64,41 +73,37 @@ class InworldTTSEntity(TextToSpeechEntity):
     @property
     def _voice_id(self) -> str:
         """Get voice ID from config."""
-        return self._get_config_value("voice_id")
+        return self._get_config_value("voice_id", "")
 
     @property
     def _model_id(self) -> str:
         """Get model ID from config."""
-        return self._get_config_value("model_id")
+        return self._get_config_value("model_id", DEFAULT_MODEL_ID)
 
     @property
     def _language(self) -> str:
         """Get language from config."""
-        return self._get_config_value("language")
+        return self._get_config_value("language", DEFAULT_LANGUAGE)
 
     @property
     def _audio_encoding(self) -> str:
         """Get audio encoding from config."""
-        return self._get_config_value("audio_encoding")
+        return self._get_config_value("audio_encoding", DEFAULT_AUDIO_ENCODING)
 
     @property
     def _sample_rate_hertz(self) -> int:
         """Get sample rate from config."""
-        return self._get_config_value("sample_rate_hertz")
+        return self._get_config_value("sample_rate_hertz", DEFAULT_SAMPLE_RATE_HERTZ)
 
     @property
     def _temperature(self) -> float:
         """Get temperature from config."""
-        return self._get_config_value("temperature")
+        return self._get_config_value("temperature", DEFAULT_TEMPERATURE)
 
     @property
     def supported_languages(self) -> list[str]:
         """Return list of supported languages."""
-        try:
-            return [self._language]
-        except ValueError:
-            # If language is not configured, return empty list
-            return []
+        return [self._language]
 
     @property
     def default_language(self) -> str:
@@ -113,11 +118,7 @@ class InworldTTSEntity(TextToSpeechEntity):
     @property
     def default_options(self) -> dict[str, Any]:
         """Return default options."""
-        try:
-            return {"voice": self._voice_id}
-        except ValueError:
-            # If voice_id is not configured, return empty dict
-            return {}
+        return {"voice": self._get_config_value("voice_id", "")}
 
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any] | None = None
