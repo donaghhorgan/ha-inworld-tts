@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import requests
+import aiohttp
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -46,11 +46,14 @@ async def get_voices_and_languages(
     }
 
     try:
-        response = await hass.async_add_executor_job(
-            lambda: requests.get(url, headers=headers, timeout=DEFAULT_API_TIMEOUT)
-        )
-        response.raise_for_status()
-        response_data = response.json()
+        async with (
+            aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=DEFAULT_API_TIMEOUT)
+            ) as session,
+            session.get(url, headers=headers) as response,
+        ):
+            response.raise_for_status()
+            response_data = await response.json()
 
         # Organize voices by language
         voices_by_language: dict[str, list[dict[str, str]]] = {}
@@ -66,12 +69,12 @@ async def get_voices_and_languages(
                 )
 
         return voices_by_language
-    except requests.exceptions.HTTPError as err:
-        if err.response.status_code == 401:
+    except aiohttp.ClientResponseError as err:
+        if err.status == 401:
             raise InvalidAuth from err
         else:
             raise CannotConnect from err
-    except requests.exceptions.RequestException as err:
+    except aiohttp.ClientError as err:
         raise CannotConnect from err
 
 
@@ -291,18 +294,19 @@ async def validate_voice_input(
         payload["audioConfig"] = audio_config
 
     try:
-        response = await hass.async_add_executor_job(
-            lambda: requests.post(
-                url, json=payload, headers=headers, timeout=DEFAULT_API_TIMEOUT
-            )
-        )
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        if err.response.status_code == 401:
+        async with (
+            aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=DEFAULT_API_TIMEOUT)
+            ) as session,
+            session.post(url, json=payload, headers=headers) as response,
+        ):
+            response.raise_for_status()
+    except aiohttp.ClientResponseError as err:
+        if err.status == 401:
             raise InvalidAuth from err
         else:
             raise CannotConnect from err
-    except requests.exceptions.RequestException as err:
+    except aiohttp.ClientError as err:
         raise CannotConnect from err
 
     return {"title": TITLE}
