@@ -1,13 +1,13 @@
 [project]
 name = "ha-inworld-tts"
-version = "1.0.0"
+version = "1.1.0"
 description = "A Home Assistant custom component that integrates with [Inworld TTS](https://inworld.ai/tts) for high-quality, ultra-realistic text-to-speech."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+  "aiohttp>=3.8.0",
   "homeassistant>=2024.8.0",
-  "requests>=2.31.0",
-  "voluptuous>=0.13.1",
+  "voluptuous>=0.13.1"
 ]
 
 [dependency-groups]
@@ -18,7 +18,6 @@ dev = [
   "pymarkdownlnt>=0.9.32",
   "ruff>=0.13.2",
   "toml-sort>=0.23.1",
-  "types-requests>=2.31.0.6",
   "validate-pyproject>=0.20.2"
 ]
 

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
 import base64
+import json
 import logging
 from typing import Any
 
-import requests
+import aiohttp
 from homeassistant.components.tts import (
     TextToSpeechEntity,
     TtsAudioType,
@@ -123,7 +123,7 @@ class InworldTTSEntity(TextToSpeechEntity):
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any] | None = None
     ) -> TtsAudioType:
-        """Load TTS from Inworld."""
+        """Load TTS from Inworld using streaming API."""
         try:
             if language != self._language:
                 raise Exception(f"Language '{language}' not supported")
@@ -133,7 +133,7 @@ class InworldTTSEntity(TextToSpeechEntity):
             if options and "voice" in options:
                 voice_id = options["voice"]
 
-            url = f"{self._api_url}/tts/v1/voice"
+            url = f"{self._api_url}/tts/v1/voice:stream"
             headers = {
                 "Authorization": f"Basic {self._api_key}",
                 "Content-Type": "application/json",
@@ -162,12 +162,7 @@ class InworldTTSEntity(TextToSpeechEntity):
             raise Exception(f"Configuration error: {err}") from err
 
         try:
-            response = await asyncio.get_event_loop().run_in_executor(
-                None, self._make_request, url, headers, payload
-            )
-
-            result = response.json()
-            audio_content = base64.b64decode(result["audioContent"])
+            audio_content = await self._make_streaming_request(url, headers, payload)
 
             _LOGGER.debug(
                 "Successfully received TTS audio (%d bytes)", len(audio_content)
@@ -187,29 +182,63 @@ class InworldTTSEntity(TextToSpeechEntity):
                 # Default to mp3
                 return ("mp3", audio_content)
 
-        except requests.exceptions.HTTPError as err:
+        except aiohttp.ClientResponseError as err:
             _LOGGER.error("HTTP error from Inworld API: %s", err)
-            if err.response.status_code == 401:
+            if err.status == 401:
                 raise Exception("Invalid API key") from err
-            elif err.response.status_code == 429:
+            elif err.status == 429:
                 raise Exception("Rate limit exceeded") from err
             else:
-                raise Exception(
-                    f"HTTP {err.response.status_code}: {err.response.text}"
-                ) from err
-        except requests.exceptions.RequestException as err:
+                raise Exception(f"HTTP {err.status}: {err.message}") from err
+        except aiohttp.ClientError as err:
             _LOGGER.error("Request error to Inworld API: %s", err)
             raise Exception("Unable to connect to Inworld API") from err
         except Exception as err:
             _LOGGER.error("Unexpected error from Inworld API: %s", err)
             raise Exception("Unexpected error processing TTS request") from err
 
-    def _make_request(
+    async def _make_streaming_request(
         self, url: str, headers: dict, payload: dict
-    ) -> requests.Response:
-        """Make synchronous request to Inworld API."""
-        response = requests.post(
-            url, json=payload, headers=headers, timeout=DEFAULT_API_TIMEOUT
-        )
-        response.raise_for_status()
-        return response
+    ) -> bytes:
+        """Make streaming request to Inworld API and collect audio chunks."""
+        audio_chunks = []
+
+        timeout = aiohttp.ClientTimeout(total=DEFAULT_API_TIMEOUT)
+        async with (
+            aiohttp.ClientSession(timeout=timeout) as session,
+            session.post(url, json=payload, headers=headers) as response,
+        ):
+            response.raise_for_status()
+
+            # Read streaming response line by line
+            async for line in response.content:
+                if line.strip():  # Skip empty lines
+                    try:
+                        # Parse JSON response chunk
+                        chunk_data = json.loads(line.decode("utf-8"))
+
+                        # Check for errors in the stream
+                        if "error" in chunk_data:
+                            error_msg = chunk_data["error"].get(
+                                "message", "Unknown error"
+                            )
+                            raise Exception(f"API error: {error_msg}")
+
+                        # Extract audio content from result
+                        if (
+                            "result" in chunk_data
+                            and "audioContent" in chunk_data["result"]
+                        ):
+                            audio_b64 = chunk_data["result"]["audioContent"]
+                            audio_bytes = base64.b64decode(audio_b64)
+                            audio_chunks.append(audio_bytes)
+
+                    except json.JSONDecodeError:
+                        # Skip invalid JSON lines
+                        continue
+                    except Exception as e:
+                        _LOGGER.error("Error processing audio chunk: %s", e)
+                        raise
+
+        # Combine all audio chunks
+        return b"".join(audio_chunks)
