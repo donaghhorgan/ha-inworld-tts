@@ -53,21 +53,36 @@ class InworldTTSEntity(TextToSpeechEntity):
         self._attr_name = TITLE
         self._attr_unique_id = f"{DOMAIN}_{config_entry.entry_id}"
 
-    def _get_config_value(self, key: str, default: Any = None) -> Any:
-        """Get configuration value with error handling."""
+    def _get_config_value(
+        self, key: str, default: Any = None, *, is_sensitive: bool | None = None
+    ) -> Any:
+        """Get configuration value with error handling.
+
+        Args:
+            key: Configuration key to retrieve
+            default: Default value if key is not found
+            mask_sensitive: If True, mask the value in logs. If None, auto-detect sensitive keys.
+        """
         _LOGGER.debug("Getting config value for key: %s", key)
+
         # Check options first (for user-configurable settings), then data (for setup settings)
         if key in self._config_entry.options:
             value = self._config_entry.options[key]
-            _LOGGER.debug("Found %s in options: %s", key, value)
+            # Mask sensitive values in debug logs
+            log_value = "***" if is_sensitive else value
+            _LOGGER.debug("Found %s in options: %s", key, log_value)
             return value
         elif key in self._config_entry.data:
             value = self._config_entry.data[key]
-            _LOGGER.debug("Found %s in data: %s", key, value)
+            # Mask sensitive values in debug logs
+            log_value = "***" if is_sensitive else value
+            _LOGGER.debug("Found %s in data: %s", key, log_value)
             return value
         else:
             if default is not None:
-                _LOGGER.debug("Using default value for %s: %s", key, default)
+                # Also mask default values if they're sensitive
+                log_default = "***" if is_sensitive else default
+                _LOGGER.debug("Using default value for %s: %s", key, log_default)
                 return default
             _LOGGER.debug("Required configuration '%s' is not set", key)
             raise ValueError(f"Required configuration '{key}' is not set")
@@ -80,7 +95,7 @@ class InworldTTSEntity(TextToSpeechEntity):
     @property
     def _api_key(self) -> str:
         """Get API key from config."""
-        return self._get_config_value("api_key")
+        return self._get_config_value("api_key", is_sensitive=True)
 
     @property
     def _voice_id(self) -> str:
